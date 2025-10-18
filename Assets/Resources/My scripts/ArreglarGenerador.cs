@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using TMPro; // <- necesario para usar TextMeshPro
 
 public class ArreglarGenerador : MonoBehaviour
 {
@@ -10,6 +11,16 @@ public class ArreglarGenerador : MonoBehaviour
     private bool enReparacion = false;
     private Coroutine reparacionCoroutine;
 
+    [Header("UI de Reparación")]
+    public GameObject textoReparando; // <- arrastrar aquí el texto desde el inspector
+
+    private void Start()
+    {
+        // Aseguramos que el texto esté oculto al inicio
+        if (textoReparando != null)
+            textoReparando.SetActive(false);
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("ControladorVR"))
@@ -17,6 +28,8 @@ public class ArreglarGenerador : MonoBehaviour
             if (!enReparacion)
             {
                 enReparacion = true;
+                if (textoReparando != null)
+                    textoReparando.SetActive(true); // <- mostrar mensaje
                 reparacionCoroutine = StartCoroutine(RepararGenerador());
             }
         }
@@ -30,6 +43,8 @@ public class ArreglarGenerador : MonoBehaviour
             tiempoEnTrigger = 0f;
             if (reparacionCoroutine != null)
                 StopCoroutine(reparacionCoroutine);
+            if (textoReparando != null)
+                textoReparando.SetActive(false); // <- ocultar mensaje
         }
     }
 
@@ -42,11 +57,12 @@ public class ArreglarGenerador : MonoBehaviour
                 yield break;
 
             tiempoEnTrigger += Time.deltaTime;
-            Debug.Log("Tiempo en trigger: " + tiempoEnTrigger);
             yield return null;
         }
 
-        Debug.Log("Reparación completada. Desactivando partículas y activando prefabs.");
+        // Reparación completada
+        if (textoReparando != null)
+            textoReparando.SetActive(false);
 
         if (interrupciones == null)
         {
@@ -54,21 +70,10 @@ public class ArreglarGenerador : MonoBehaviour
             yield break;
         }
 
-        Debug.Log("Partículas: " + interrupciones.particulas.Length);
-        Debug.Log("Prefabs: " + interrupciones.prefabs.Length);
-
         foreach (GameObject particula in interrupciones.particulas)
-        {
-            Debug.Log("Desactivando partícula: " + particula?.name);
-            if (particula != null)
-                particula.SetActive(false);
-        }
-        foreach (GameObject prefab in interrupciones.prefabs)
-        {
-            Debug.Log("Activando prefab: " + prefab?.name);
-            if (prefab != null)
-                prefab.SetActive(true);
-        }
-    }
+            if (particula != null) particula.SetActive(false);
 
+        foreach (GameObject prefab in interrupciones.prefabs)
+            if (prefab != null) prefab.SetActive(true);
+    }
 }
