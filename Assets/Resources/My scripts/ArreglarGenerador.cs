@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using TMPro; // <- necesario para usar TextMeshPro
 
+[RequireComponent(typeof(AudioSource))]
 public class ArreglarGenerador : MonoBehaviour
 {
     public Interrupciones interrupciones;
@@ -10,12 +11,17 @@ public class ArreglarGenerador : MonoBehaviour
     private float tiempoEnTrigger = 0f;
     private bool enReparacion = false;
     private Coroutine reparacionCoroutine;
+    private bool generadorYaReparado = false;
+    private AudioSource audioReparacion;
+
 
     [Header("UI de Reparación")]
     public GameObject textoReparando; // <- arrastrar aquí el texto desde el inspector
 
     private void Start()
     {
+        // Obtenemos el AudioSource que está en este mismo objeto
+        audioReparacion = GetComponent<AudioSource>();
         // Aseguramos que el texto esté oculto al inicio
         if (textoReparando != null)
             textoReparando.SetActive(false);
@@ -23,13 +29,16 @@ public class ArreglarGenerador : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("ControladorVR"))
+        // Añade la comprobación de si ya fue reparado
+        if (other.CompareTag("ControladorVR") && !generadorYaReparado)
         {
             if (!enReparacion)
             {
                 enReparacion = true;
                 if (textoReparando != null)
                     textoReparando.SetActive(true); // <- mostrar mensaje
+                if (audioReparacion != null)
+                    audioReparacion.Play();
                 reparacionCoroutine = StartCoroutine(RepararGenerador());
             }
         }
@@ -43,6 +52,8 @@ public class ArreglarGenerador : MonoBehaviour
             tiempoEnTrigger = 0f;
             if (reparacionCoroutine != null)
                 StopCoroutine(reparacionCoroutine);
+            if (audioReparacion != null && !generadorYaReparado)
+                audioReparacion.Stop();
             if (textoReparando != null)
                 textoReparando.SetActive(false); // <- ocultar mensaje
         }
@@ -70,10 +81,9 @@ public class ArreglarGenerador : MonoBehaviour
             yield break;
         }
 
-        foreach (GameObject particula in interrupciones.particulas)
-            if (particula != null) particula.SetActive(false);
-
-        foreach (GameObject prefab in interrupciones.prefabs)
-            if (prefab != null) prefab.SetActive(true);
+        interrupciones.TerminarInterrupcionGenerador();
+        generadorYaReparado = true; // <- ¡Activamos la "memoria"!
+        if (audioReparacion != null)
+            audioReparacion.Stop();
     }
 }

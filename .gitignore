@@ -76,3 +76,5 @@ Assets/**/*.unitypackage
 # =========================================
 .DS_Store
 Thumbs.db
+# Ignorar archivos de Unity Plastic SCM
+/.plastic/
