@@ -15,8 +15,12 @@ public class ReproducirAnimaciones : MonoBehaviour
     [Tooltip("Maximum time between animations (seconds)")]
     public float maxTimeBetweenAnimations = 10f;
 
+    [SerializeField]
+    [Tooltip("Escribe AQUÍ los nombres EXACTOS de los estados del Animator")]
+    private string[] animationStateNames; //
+
     private Animator animator;
-    private AnimationClip[] animationClips;
+
 
     void Start()
     {
@@ -24,17 +28,16 @@ public class ReproducirAnimaciones : MonoBehaviour
         
         if (animator != null && autoPlayAnimations)
         {
-            // Obtiene todos los clips de animación del Animator Controller
-            animationClips = animator.runtimeAnimatorController.animationClips;
-            
-            if (animationClips.Length > 0)
+            animator.Update(0f);
+            // ¡Ahora revisamos la lista de NOMBRES, no de clips!
+            if (animationStateNames.Length > 0)
             {
                 PlayRandomAnimation();
                 StartCoroutine(PlayAnimationsLoop());
             }
             else
             {
-                Debug.LogWarning("No animation clips found in the Animator Controller.");
+                Debug.LogWarning("La lista 'Animation State Names' está vacía en el Inspector.");
             }
         }
     }
@@ -42,8 +45,9 @@ public class ReproducirAnimaciones : MonoBehaviour
     // Reproduce una animación aleatoria
     private void PlayRandomAnimation()
     {
-        AnimationClip randomClip = animationClips[Random.Range(0, animationClips.Length)];
-        animator.CrossFadeInFixedTime(randomClip.name, 0.3f); // Transición suave de 0.3 segundos
+        string randomStateName = animationStateNames[Random.Range(0, animationStateNames.Length)];
+        int layerIndex = 0;
+        animator.CrossFadeInFixedTime(randomStateName, 0.3f, layerIndex);
     }
 
     // Bucle infinito para cambiar animaciones
