@@ -7,7 +7,6 @@ public class ArreglarGenerador : MonoBehaviour
 {
     public Interrupciones interrupciones;
     public float tiempoReparacion = 5f;
-
     private float tiempoEnTrigger = 0f;
     private bool enReparacion = false;
     private Coroutine reparacionCoroutine;
@@ -35,6 +34,15 @@ public class ArreglarGenerador : MonoBehaviour
             if (!enReparacion)
             {
                 enReparacion = true;
+                // 1. Ocultamos la notificación general (llamando al cerebro)
+                if (interrupciones != null)
+                {
+                    interrupciones.OcultarNotificacion();
+                }
+                
+                // 2. Mostramos el texto específico de "Reparando"
+                if (textoReparando != null)
+                    textoReparando.SetActive(true);
                 if (textoReparando != null)
                     textoReparando.SetActive(true); // <- mostrar mensaje
                 if (audioReparacion != null)
@@ -56,6 +64,12 @@ public class ArreglarGenerador : MonoBehaviour
                 audioReparacion.Stop();
             if (textoReparando != null)
                 textoReparando.SetActive(false); // <- ocultar mensaje
+            // Si el jugador sale SIN haber reparado, 
+            // volvemos a mostrar la notificación general.
+            if (interrupciones != null && !generadorYaReparado)
+            {
+                interrupciones.MostrarNotificacion();
+            }
         }
     }
 
