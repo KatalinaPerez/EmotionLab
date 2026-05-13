@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Interrupciones : MonoBehaviour
 {
-    public LuzIntermitente luzIntermitente;
     public Temporizador temporizador;
     public GameObject[] particulas;
     [Header("Prefabs que se apagarán")]
@@ -15,7 +14,6 @@ public class Interrupciones : MonoBehaviour
     [Header("UI")]
     public GameObject textoNotificacion;
 
-<<<<<<< HEAD
     [Header("Configuración interrupción")]
     [Tooltip("Tiempo restante (en segundos) en el que se dispara la interrupción del generador.")]
     public float umbralInterrupcion = 110f;
@@ -26,8 +24,6 @@ public class Interrupciones : MonoBehaviour
     [Tooltip("Volumen de la música de interrupción cuando está activa.")]
     [Range(0f, 1f)] public float volumenInterrupcionActiva = 0.8f;
 
-=======
->>>>>>> main
     private float tiempoActual;
     private bool interrupcionGenerador = false;
 
@@ -79,13 +75,7 @@ public class Interrupciones : MonoBehaviour
 
     public void InterrumpirGenerador()
     {
-<<<<<<< HEAD
         if (prefabs != null)
-=======
-        Debug.Log("SE ACTIVÓ INTERRUPCIÓN");
-
-        foreach (GameObject prefab in prefabs)
->>>>>>> main
         {
             foreach (GameObject prefab in prefabs)
             {
@@ -117,7 +107,6 @@ public class Interrupciones : MonoBehaviour
             musicaDeInterrupcion.volume = volumenInterrupcionActiva;
             if (!musicaDeInterrupcion.isPlaying) musicaDeInterrupcion.Play();
         }
-
     }
     // Necesitarás llamar a esta función cuando el evento TERMINE
     public void TerminarInterrupcionGenerador()
@@ -152,11 +141,6 @@ public class Interrupciones : MonoBehaviour
         {
             musicaDeInterrupcion.volume = 0f;
             musicaDeInterrupcion.Stop(); // Detener para no consumir recursos
-        }
-
-        if (luzIntermitente != null)
-        {
-            luzIntermitente.IniciarParpadeo();
         }
     }
     // Esta función PÚBLICA solo oculta el texto de notificación
