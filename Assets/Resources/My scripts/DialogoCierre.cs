@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// Diálogo de cierre para que conteste las ultimas preguntas
@@ -18,11 +19,17 @@ public class DialogoCierre : DialogoBase
 
     private void Start()
     {
+        InputSystem.Update();
+        
         if (clipboard != null)
             clipboard.SetActive(false);
 
         if (btnVamosAlCierre != null)        
             btnVamosAlCierre.interactable = false;
+
+        currentPanelIndex = 0;
+        HideAllPanels();
+        ShowCurrentPanel();
     }
 
     ///<summary>
@@ -32,7 +39,7 @@ public class DialogoCierre : DialogoBase
     public override void OnNextButton()
     {
         //Antes de avanzar al siguiente panel, verificamos si estamos en el último panel.
-        if (currentPanelIndex == 1)
+        if (currentPanelIndex == 2)
         {
             // Si es el último panel, mostramos el clipboard y habilitamos el botón para avanzar a la escena de cierre.
             if (clipboard != null)
@@ -46,11 +53,11 @@ public class DialogoCierre : DialogoBase
     }
 
     ///<summary>
-        /// Funcion que llamarpa el formulario al responder la última pregunta.
-        ///</summary>
+    /// Funcion que llamara el formulario al responder la última pregunta.
+    ///</summary>
     public void OnFormularioFinalizado()
     {
-        //1. DEsaparece el clipboard
+        //1. Desaparece el clipboard
         if (clipboard != null)
             clipboard.SetActive(false);
 
