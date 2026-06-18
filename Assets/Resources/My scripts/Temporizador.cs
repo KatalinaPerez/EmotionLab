@@ -6,7 +6,7 @@ public class Temporizador : MonoBehaviour
 {
     [Header("Configuración")]
     public TMP_Text displayText;
-    public float tiempoInicial = 60f; // Tiempo en segundos
+    public float tiempoInicial = 120f; // Tiempo en segundos
     public bool autoIniciar = false;
 
     [Header("Formato")]
