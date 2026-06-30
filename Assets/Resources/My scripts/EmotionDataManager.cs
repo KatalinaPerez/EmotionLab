@@ -92,11 +92,37 @@ public class EmotionDataManager : MonoBehaviour
                 ? "participante_" + DateTime.Now.ToString("yyyyMMdd_HHmmss")
                 : idParticipante,
             fechaInicio = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-            respuestas = new List<RespuestaData>()
+            respuestas = new List<RespuestaData>(),
+            eventos = new List<EventoData>()
         };
 
         if (logEnConsola)
             Debug.Log($"[EmotionDataManager] Sesión iniciada: {sesionActual.idParticipante}");
+
+        LogEvent("session_started", "inicio");
+    }
+
+    /// <summary>
+    /// Punto único de entrada para registrar eventos KPI puntuales
+    /// (ej. "session_started", "session_completed", "breathing_technique_used").
+    /// </summary>
+    public void LogEvent(string nombre, string fase = null, string payload = null)
+    {
+        if (sesionActual == null) IniciarSesion(null);
+
+        if (sesionActual.eventos == null)
+            sesionActual.eventos = new List<EventoData>();
+
+        sesionActual.eventos.Add(new EventoData
+        {
+            nombre = nombre,
+            fase = fase,
+            payload = payload,
+            timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")
+        });
+
+        if (logEnConsola)
+            Debug.Log($"[EmotionDataManager] Evento: {nombre} ({fase}) {payload}");
     }
 
     /// <summary>
@@ -236,6 +262,7 @@ public class EmotionDataManager : MonoBehaviour
     {
         if (sesionActual == null) return;
         sesionActual.fechaFin = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        LogEvent("session_completed", "cierre");
         if (logEnConsola)
             Debug.Log($"[EmotionDataManager] Sesión finalizada: {sesionActual.fechaFin}");
     }
@@ -254,6 +281,7 @@ public class EmotionDataManager : MonoBehaviour
         public string fechaFin;
         public string difficulty_level;   // "facil" | "dificil"
         public List<RespuestaData> respuestas;
+        public List<EventoData> eventos;
     }
 
     [Serializable]
@@ -264,6 +292,15 @@ public class EmotionDataManager : MonoBehaviour
         public string textoPregunta;
         public string respuestaLabel;
         public int respuestaIndex;
+        public string timestamp;
+    }
+
+    [Serializable]
+    public class EventoData
+    {
+        public string nombre;
+        public string fase;
+        public string payload;
         public string timestamp;
     }
 }

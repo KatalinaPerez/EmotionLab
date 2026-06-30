@@ -79,6 +79,9 @@ public class EjercicioRespiracion : MonoBehaviour
     {
         isRunning = true;
 
+        if (EmotionDataManager.Instance != null)
+            EmotionDataManager.Instance.LogEvent("breathing_technique_used", "inicio");
+
         if (balloonObject != null) balloonObject.SetActive(true);
         if (instructionText != null)
         {
@@ -117,6 +120,9 @@ public class EjercicioRespiracion : MonoBehaviour
         if (balloonObject != null) balloonObject.SetActive(false);
         if (instructionText != null) instructionText.gameObject.SetActive(false);
         isRunning = false;
+
+        if (EmotionDataManager.Instance != null)
+            EmotionDataManager.Instance.LogEvent("breathing_technique_used", "completado");
 
         // Al terminar el ejercicio, decirle al script de diálogo que avance
         if (dialogoTips != null)
