@@ -216,6 +216,30 @@ public class EmotionDataManager : MonoBehaviour
         return Path.Combine(Application.persistentDataPath, carpetaSesiones);
     }
 
+    /// <summary>
+    /// Registra el nivel de dificultad de la sesión ("facil" | "dificil").
+    /// Llamar desde MenuSelector al seleccionar la escena.
+    /// </summary>
+    public void SetDifficultyLevel(string level)
+    {
+        if (sesionActual == null) IniciarSesion(null);
+        sesionActual.difficulty_level = level;
+        if (logEnConsola)
+            Debug.Log($"[EmotionDataManager] difficulty_level = {level}");
+    }
+
+    /// <summary>
+    /// Marca la sesión como finalizada registrando la hora de cierre.
+    /// Llamar desde FormularioCierre al completar el formulario.
+    /// </summary>
+    public void FinalizarSesion()
+    {
+        if (sesionActual == null) return;
+        sesionActual.fechaFin = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        if (logEnConsola)
+            Debug.Log($"[EmotionDataManager] Sesión finalizada: {sesionActual.fechaFin}");
+    }
+
     public SesionData GetSesionActual() => sesionActual;
 
     // ======================================================================
@@ -227,6 +251,8 @@ public class EmotionDataManager : MonoBehaviour
     {
         public string idParticipante;
         public string fechaInicio;
+        public string fechaFin;
+        public string difficulty_level;   // "facil" | "dificil"
         public List<RespuestaData> respuestas;
     }
 

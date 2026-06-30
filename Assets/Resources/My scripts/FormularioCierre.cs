@@ -59,6 +59,18 @@ public class FormularioCierre : MonoBehaviour
         // Si el código pasa el bucle, significa que completaron todo el formulario
         formularioYaFinalizado = true;
 
+        // Registrar cierre de sesión y guardar JSON antes de continuar
+        var manager = EmotionDataManager.Instance;
+        if (manager != null)
+        {
+            manager.FinalizarSesion();
+            manager.GuardarAJson();
+        }
+        else
+        {
+            Debug.LogWarning("[FormularioCierre] EmotionDataManager no encontrado — sesión no guardada.");
+        }
+
         // Avisamos al DialogoCierre para que apague el portapapeles y libere el botón
         if (onFormularioCompletado != null)
         {

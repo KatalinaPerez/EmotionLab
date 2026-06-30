@@ -20,6 +20,11 @@ public class MenuSelector : MonoBehaviour
         escenaSeleccionada = nombreEscena;
         PlayerPrefs.SetString("EscenaSeleccionada", nombreEscena);
         Debug.Log("Escena seleccionada: " + nombreEscena);
+
+        // Registrar dificultad en EmotionDataManager para el JSON de sesión
+        string dificultad = nombreEscena == "Oficina" ? "facil" : "dificil";
+        PlayerPrefs.SetString("DificultadSeleccionada", dificultad);
+        EmotionDataManager.Instance?.SetDifficultyLevel(dificultad);
     }
 
     // Llamado por el botón "Iniciar"
