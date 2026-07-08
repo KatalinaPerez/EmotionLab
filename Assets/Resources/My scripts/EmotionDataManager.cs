@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Networking;
+using System.Collections; // Necesario para las corrutinas
 
 /// <summary>
 /// Singleton que persiste entre escenas y almacena las respuestas de los
@@ -25,6 +27,7 @@ public class EmotionDataManager : MonoBehaviour
     [Header("Configuración")]
     [Tooltip("Nombre de carpeta donde se guardan los JSON de sesión.")]
     public string carpetaSesiones = "EmotionLabSesiones";
+    public string apiUrl = "https://emotionlab.free.beeceptor.com";
 
     [Tooltip("Si está activo, también imprime el JSON en la consola al guardar.")]
     public bool logEnConsola = true;
@@ -218,11 +221,12 @@ public class EmotionDataManager : MonoBehaviour
 
             string json = JsonUtility.ToJson(sesionActual, prettyPrint: true);
             File.WriteAllText(rutaCompleta, json);
+            
+            EnviarDatosAlServidor();
 
             if (logEnConsola)
             {
                 Debug.Log($"[EmotionDataManager] JSON guardado en:\n{rutaCompleta}");
-                Debug.Log(json);
             }
 
             return rutaCompleta;
@@ -258,6 +262,7 @@ public class EmotionDataManager : MonoBehaviour
     /// Marca la sesión como finalizada registrando la hora de cierre.
     /// Llamar desde FormularioCierre al completar el formulario.
     /// </summary>
+    
     public void FinalizarSesion()
     {
         if (sesionActual == null) return;
@@ -272,6 +277,54 @@ public class EmotionDataManager : MonoBehaviour
     // ======================================================================
     // Estructuras serializables (JsonUtility necesita [Serializable] + campos públicos)
     // ======================================================================
+
+    /// <summary>
+    /// Envía los datos de la sesión actual en formato JSON hacia la API de simulación (Beeceptor).
+    /// </summary>
+    public void EnviarDatosAlServidor()
+    {
+        if (sesionActual == null) return;
+
+        // Convertimos el objeto de sesión actual a un string JSON limpio
+        string jsonPayload = JsonUtility.ToJson(sesionActual, prettyPrint: false);
+        
+        // Iniciamos la corrutina para hacer la petición web en segundo plano
+        StartCoroutine(EnviarPostHttp(jsonPayload));
+    }
+
+    private IEnumerator EnviarPostHttp(string json)
+    {
+        // Creamos la petición POST apuntando a tu URL de Beeceptor
+        using (UnityWebRequest request = new UnityWebRequest(apiUrl, "POST"))
+        {
+            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
+            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            request.downloadHandler = new DownloadHandlerBuffer();
+            
+            // Le especificamos al servidor que lo que enviamos es un JSON
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            if (logEnConsola)
+                Debug.Log($"[EmotionDataManager] Enviando JSON a la nube...");
+
+            // Esperamos a que la petición termine
+            yield return request.SendWebRequest();
+
+            // Revisamos el resultado
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                if (logEnConsola)
+                {
+                    Debug.Log("[EmotionDataManager] ¡Datos subidos con éxito a Beeceptor!");
+                    Debug.Log($"Respuesta del servidor: {request.downloadHandler.text}");
+                }
+            }
+            else
+            {
+                Debug.LogError($"[EmotionDataManager] Error al subir datos: {request.error}");
+            }
+        }
+    }
 
     [Serializable]
     public class SesionData
