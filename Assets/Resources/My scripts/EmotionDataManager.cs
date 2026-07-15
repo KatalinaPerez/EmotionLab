@@ -27,7 +27,8 @@ public class EmotionDataManager : MonoBehaviour
     [Header("Configuración")]
     [Tooltip("Nombre de carpeta donde se guardan los JSON de sesión.")]
     public string carpetaSesiones = "EmotionLabSesiones";
-    public string apiUrl = "https://emotionlab.free.beeceptor.com";
+    [SerializeField]
+    public string apiUrl = "https://c2a1zfsvcj.execute-api.us-east-1.amazonaws.com/prod/data";
 
     [Tooltip("Si está activo, también imprime el JSON en la consola al guardar.")]
     public bool logEnConsola = true;
@@ -309,6 +310,8 @@ public class EmotionDataManager : MonoBehaviour
 
             // Esperamos a que la petición termine
             yield return request.SendWebRequest();
+
+            Debug.Log("[EmotionDataManager] URL REAL que se está llamando: " + request.url);
 
             // Revisamos el resultado
             if (request.result == UnityWebRequest.Result.Success)
