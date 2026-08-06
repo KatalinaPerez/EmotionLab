@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.Networking;
 using System.Collections; // Necesario para las corrutinas
 
+
 /// <summary>
 /// Singleton que persiste entre escenas y almacena las respuestas de los
 /// formularios emocionales del participante. Guarda todo a un JSON en disco.
@@ -40,7 +41,7 @@ public class EmotionDataManager : MonoBehaviour
     public bool guardarAlCerrarApp = true;
 
     // ---- Datos de la sesión actual ----
-    private SesionData sesionActual;
+    public SesionData sesionActual;
 
     void Awake()
     {
@@ -90,18 +91,31 @@ public class EmotionDataManager : MonoBehaviour
     /// </summary>
     public void IniciarSesion(string idParticipante)
     {
+        // Si ya hay una sesión activa y con ID válido, no la reiniciamos para no perder respuestas
+        if (sesionActual != null && !string.IsNullOrEmpty(sesionActual.idParticipante) && string.IsNullOrEmpty(idParticipante))
+        {
+            if (logEnConsola)
+                Debug.Log($"[EmotionDataManager] Sesión existente conservada: {sesionActual.idParticipante}");
+            return;
+        }
+
+        // Generamos un código alfanumérico único de 8 caracteres al final (GUID)
+        string hashUnico = Guid.NewGuid().ToString().Substring(0, 8);
+
+        string idFinal = string.IsNullOrEmpty(idParticipante) 
+            ? "participante_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + "_" + hashUnico
+            : idParticipante;
+
         sesionActual = new SesionData
         {
-            idParticipante = string.IsNullOrEmpty(idParticipante)
-                ? "participante_" + DateTime.Now.ToString("yyyyMMdd_HHmmss")
-                : idParticipante,
+            idParticipante = idFinal,
             fechaInicio = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
             respuestas = new List<RespuestaData>(),
             eventos = new List<EventoData>()
         };
 
         if (logEnConsola)
-            Debug.Log($"[EmotionDataManager] Sesión iniciada: {sesionActual.idParticipante}");
+            Debug.Log($"[EmotionDataManager] Sesión iniciada CON ÉXITO: {sesionActual.idParticipante}");
 
         LogEvent("session_started", "inicio");
     }
@@ -112,8 +126,7 @@ public class EmotionDataManager : MonoBehaviour
     /// </summary>
     public void LogEvent(string nombre, string fase = null, string payload = null)
     {
-        if (sesionActual == null) IniciarSesion(null);
-
+        if (sesionActual == null || string.IsNullOrEmpty(sesionActual.idParticipante)) IniciarSesion(null);
         if (sesionActual.eventos == null)
             sesionActual.eventos = new List<EventoData>();
 
@@ -136,7 +149,7 @@ public class EmotionDataManager : MonoBehaviour
     public void RegistrarRespuesta(string escena, string idPregunta, string textoPregunta,
                                    string respuestaLabel, int respuestaIndex)
     {
-        if (sesionActual == null) IniciarSesion(null);
+        if (sesionActual == null || string.IsNullOrEmpty(sesionActual.idParticipante)) IniciarSesion(null);
 
         sesionActual.respuestas.Add(new RespuestaData
         {
@@ -159,7 +172,9 @@ public class EmotionDataManager : MonoBehaviour
     public void RegistrarOActualizarRespuesta(string escena, string idPregunta, string textoPregunta,
                                               string respuestaLabel, int respuestaIndex)
     {
-        if (sesionActual == null) IniciarSesion(null);
+        if (sesionActual == null || string.IsNullOrEmpty(sesionActual.idParticipante)) IniciarSesion(null);
+        if (sesionActual.respuestas == null)
+            sesionActual.respuestas = new List<RespuestaData>();
 
         // Buscar respuesta existente para misma escena + pregunta
         RespuestaData existente = null;
@@ -205,11 +220,11 @@ public class EmotionDataManager : MonoBehaviour
     /// </summary>
     public string GuardarAJson()
     {
-        if (sesionActual == null)
-        {
-            Debug.LogWarning("[EmotionDataManager] No hay sesión activa para guardar.");
-            return null;
-        }
+        if (sesionActual == null || string.IsNullOrEmpty(sesionActual.idParticipante))
+            {
+                Debug.LogWarning("[EmotionDataManager] No hay sesión activa válida para guardar.");
+                return null;
+            }
 
         try
         {
@@ -253,7 +268,7 @@ public class EmotionDataManager : MonoBehaviour
     /// </summary>
     public void SetDifficultyLevel(string level)
     {
-        if (sesionActual == null) IniciarSesion(null);
+        if (sesionActual == null || string.IsNullOrEmpty(sesionActual.idParticipante)) IniciarSesion(null);
         sesionActual.difficulty_level = level;
         if (logEnConsola)
             Debug.Log($"[EmotionDataManager] difficulty_level = {level}");
