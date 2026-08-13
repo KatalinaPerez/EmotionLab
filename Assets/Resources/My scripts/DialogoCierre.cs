@@ -57,21 +57,11 @@ public class DialogoCierre : DialogoBase
     ///</summary>
     public void OnFormularioFinalizado()
     {
-        // 1. Marcar la sesión como finalizada y subir el JSON COMPLETO a AWS S3
-        if (EmotionDataManager.Instance != null)
-        {
-            EmotionDataManager.Instance.FinalizarSesion();
-        }
-        else
-        {
-            Debug.LogWarning("[DialogoCierre] No se encontró la instancia de EmotionDataManager para finalizar la sesión.");
-        }
-        
-        //2. Desaparece el clipboard
+        //1. Desaparece el clipboard
         if (clipboard != null)
             clipboard.SetActive(false);
 
-        //3. Se habilita boton "Vamos al cierre"
+        //2. Se habilita boton "Vamos al cierre"
         if (btnVamosAlCierre != null)
             btnVamosAlCierre.interactable = true;
     }
