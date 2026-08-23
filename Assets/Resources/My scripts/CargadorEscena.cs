@@ -18,11 +18,19 @@ public class CargadorEscena : MonoBehaviour
     [Tooltip("Nombre exacto de la escena a cargar. Debe estar añadida en File > Build Settings.")]
     public string nombreEscena = "Cierre";
 
+    [Tooltip("Si no está vacío ('facil' | 'dificil'), al presionar este botón marca ese modo como " +
+             "completado en EmotionDataManager antes de cargar la escena. Dejar vacío si este botón " +
+             "no representa el fin de un modo Fácil/Difícil.")]
+    public string modoCompletadoAlFinalizar = "";
+
     /// <summary>
     /// Carga la escena configurada en 'nombreEscena'.
     /// </summary>
     public void CargarEscena()
     {
+        if (!string.IsNullOrEmpty(modoCompletadoAlFinalizar))
+            EmotionDataManager.Instance?.MarcarModoCompletado(modoCompletadoAlFinalizar);
+
         if (string.IsNullOrEmpty(nombreEscena))
         {
             Debug.LogWarning("[CargadorEscena] 'nombreEscena' está vacío. No se hace transición.");

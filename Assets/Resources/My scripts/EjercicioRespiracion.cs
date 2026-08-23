@@ -6,7 +6,7 @@ using System.Collections;
 public class EjercicioRespiracion : MonoBehaviour
 {
     public GameObject balloonObject;        // 🎈 El globo o balón
-    public DialogoTips dialogoTips;         // 🔗 Referencia al script de diálogos
+    public DialogoBase dialogoTips;         // 🔗 Referencia al script de diálogos (cualquier subclase de DialogoBase)
     public int nextPanelIndexAfterExercise; // Panel al que debe ir después del ejercicio
 
     public int cycles = 3;                  // Número de respiraciones
@@ -32,9 +32,6 @@ public class EjercicioRespiracion : MonoBehaviour
             baseScale = balloonObject.transform.localScale;
             balloonObject.SetActive(false);
         }
-
-        if (instructionText != null)
-            instructionText.gameObject.SetActive(false);
     }
 
 

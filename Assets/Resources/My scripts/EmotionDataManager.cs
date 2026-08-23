@@ -278,7 +278,7 @@ public class EmotionDataManager : MonoBehaviour
     /// Marca la sesión como finalizada registrando la hora de cierre.
     /// Llamar desde FormularioCierre al completar el formulario.
     /// </summary>
-    
+
     public void FinalizarSesion()
     {
         if (sesionActual == null) return;
@@ -289,6 +289,69 @@ public class EmotionDataManager : MonoBehaviour
     }
 
     public SesionData GetSesionActual() => sesionActual;
+
+    // ---- Estado de completado / flujo Fácil-Difícil / rehacer sesión ----
+
+    public bool FacilCompletado => sesionActual != null && sesionActual.facilCompletado;
+    public bool DificilCompletado => sesionActual != null && sesionActual.dificilCompletado;
+    public bool RetryUsado => sesionActual != null && sesionActual.retryUsado;
+    public string UltimoModoCompletado => sesionActual?.ultimoModoCompletado;
+
+    /// <summary>
+    /// Marca un modo ("facil" | "dificil") como completado en la sesión actual.
+    /// Llamar al finalizar Oficina (Fácil) o Salón (Difícil). Retroalimentación
+    /// usa "ultimoModoCompletado" para decidir si debe encadenar al modo Difícil
+    /// o continuar hacia Cierre.
+    /// </summary>
+    public void MarcarModoCompletado(string modo)
+    {
+        if (sesionActual == null || string.IsNullOrEmpty(sesionActual.idParticipante)) IniciarSesion(null);
+
+        sesionActual.ultimoModoCompletado = modo;
+        if (modo == "facil") sesionActual.facilCompletado = true;
+        else if (modo == "dificil") sesionActual.dificilCompletado = true;
+
+        if (logEnConsola)
+            Debug.Log($"[EmotionDataManager] Modo completado: {modo}");
+
+        LogEvent("modo_completado", modo);
+    }
+
+    /// <summary>
+    /// Marca que ya se usó el (único) "Volver a Empezar" de esta sesión.
+    /// Llamar desde el botón "Volver a Empezar" en Cierre, antes de recargar
+    /// Waiting Room.
+    /// </summary>
+    public void MarcarRetryUsado()
+    {
+        if (sesionActual == null) return;
+        sesionActual.retryUsado = true;
+        LogEvent("retry_clicked", "cierre");
+    }
+
+    /// <summary>
+    /// Genera una sesión completamente nueva (nuevo SessionID), descartando el
+    /// estado de completado de la sesión anterior. Llamar desde el botón
+    /// "Nueva Experiencia" en Cierre, antes de recargar Waiting Room.
+    /// </summary>
+    public void IniciarNuevaSesion()
+    {
+        string hashUnico = Guid.NewGuid().ToString().Substring(0, 8);
+        string idNuevo = "participante_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + "_" + hashUnico;
+
+        sesionActual = new SesionData
+        {
+            idParticipante = idNuevo,
+            fechaInicio = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+            respuestas = new List<RespuestaData>(),
+            eventos = new List<EventoData>()
+        };
+
+        if (logEnConsola)
+            Debug.Log($"[EmotionDataManager] Nueva experiencia iniciada: {sesionActual.idParticipante}");
+
+        LogEvent("session_started", "nueva_experiencia");
+    }
 
     // ======================================================================
     // Estructuras serializables (JsonUtility necesita [Serializable] + campos públicos)
@@ -351,6 +414,10 @@ public class EmotionDataManager : MonoBehaviour
         public string fechaInicio;
         public string fechaFin;
         public string difficulty_level;   // "facil" | "dificil"
+        public bool facilCompletado;
+        public bool dificilCompletado;
+        public bool retryUsado;
+        public string ultimoModoCompletado; // "facil" | "dificil"
         public List<RespuestaData> respuestas;
         public List<EventoData> eventos;
     }

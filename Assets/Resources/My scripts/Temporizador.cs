@@ -30,6 +30,11 @@ public class Temporizador : MonoBehaviour
     [Tooltip("Solo se usa si 'transicionAutomaticaAlExpirar' está activo.")]
     public float delayAntesDeTransicion = 30f;
 
+    [Tooltip("Si no está vacío ('facil' | 'dificil'), al ejecutarse IrAEscenaSiguiente() marca ese modo " +
+             "como completado en EmotionDataManager. Dejar vacío si este Temporizador no representa el " +
+             "fin de un modo Fácil/Difícil (ej. otros usos del componente).")]
+    public string modoCompletadoAlFinalizar = "";
+
     private float tiempoRestante;
     private bool temporizadorActivo = false;
     private bool transicionLanzada = false;
@@ -164,6 +169,9 @@ public class Temporizador : MonoBehaviour
     {
         if (transicionLanzada) return; // Evitar dobles transiciones
         transicionLanzada = true;
+
+        if (!string.IsNullOrEmpty(modoCompletadoAlFinalizar))
+            EmotionDataManager.Instance?.MarcarModoCompletado(modoCompletadoAlFinalizar);
 
         if (string.IsNullOrEmpty(escenaSiguiente))
         {
