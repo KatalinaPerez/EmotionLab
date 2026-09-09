@@ -1,14 +1,28 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class MenuSelector : MonoBehaviour
 {
     public static string presentacionSeleccionada;
     public static string escenaSeleccionada;
 
-    [Header("Bloqueo modo Difícil")]
-    [Tooltip("GameObject 'Dificil' (contenedor de Button_2 en Escenarios). Se oculta por completo " +
-             "mientras el modo Fácil no se haya completado en esta sesión.")]
+    [Header("Formulario del Clipboard")]
+    [Tooltip("Preguntas del formulario del Clipboard (Waiting Room). El botón 'Empezar' " +
+             "permanece deshabilitado hasta que todas tengan una respuesta seleccionada.")]
+    [SerializeField] private PreguntasFormulario[] preguntasClipboard;
+    [Tooltip("Botón 'Empezar' del board. Se habilita/deshabilita según el estado del formulario.")]
+    [SerializeField] private Button botonEmpezar;
+
+    [Header("Pizarra de selección")]
+    [Tooltip("GameObject 'Presentaciones' (tablero de selección de presentación). Permanece oculto " +
+             "hasta que se llame a MostrarPizarra().")]
+    [SerializeField] private GameObject panelPresentaciones;
+    [Tooltip("GameObject 'Facil' (contenedor de Button_1 en Escenarios). Permanece oculto " +
+             "hasta que se llame a MostrarPizarra().")]
+    [SerializeField] private GameObject cajaFacil;
+    [Tooltip("GameObject 'Dificil' (contenedor de Button_2 en Escenarios). Se revela solo si el modo " +
+             "Fácil ya se completó en esta sesión; se oculta por completo en caso contrario.")]
     [SerializeField] private GameObject cajaDificil;
 
     [Header("Highlight de selección faltante")]
@@ -17,8 +31,70 @@ public class MenuSelector : MonoBehaviour
     [Tooltip("Tablero de selección de escena (Fácil/Difícil). Se resalta si se presiona 'Iniciar' sin elegir una.")]
     [SerializeField] private PreguntasPizarra tableroEscenarios;
 
-    private void Start()
+    void Start()
     {
+        foreach (PreguntasFormulario pregunta in preguntasClipboard)
+        {
+            if (pregunta != null)
+                pregunta.OnRespuestaSeleccionada += ActualizarBotonEmpezar;
+        }
+
+        ActualizarBotonEmpezar();
+    }
+
+    void OnDestroy()
+    {
+        foreach (PreguntasFormulario pregunta in preguntasClipboard)
+        {
+            if (pregunta != null)
+                pregunta.OnRespuestaSeleccionada -= ActualizarBotonEmpezar;
+        }
+    }
+
+    private bool TodasLasPreguntasRespondidas()
+    {
+        if (preguntasClipboard == null || preguntasClipboard.Length == 0)
+        {
+            Debug.LogWarning("MenuSelector: 'preguntasClipboard' no está configurado. " +
+                              "El botón Empezar no exigirá responder el formulario.");
+            return true;
+        }
+
+        foreach (PreguntasFormulario pregunta in preguntasClipboard)
+        {
+            if (pregunta != null && !pregunta.HasAnswer())
+                return false;
+        }
+        return true;
+    }
+
+    private void ActualizarBotonEmpezar()
+    {
+        if (botonEmpezar != null)
+            botonEmpezar.interactable = TodasLasPreguntasRespondidas();
+    }
+
+    /// <summary>
+    /// Revela el tablero de selección de presentación. Se llama desde
+    /// DialogoPreparacion cuando Labbu muestra el panel "Elección presentación",
+    /// para que aparezca junto con esa parte de la explicación (no antes).
+    /// </summary>
+    public void MostrarPresentaciones()
+    {
+        if (panelPresentaciones != null)
+            panelPresentaciones.SetActive(true);
+    }
+
+    /// <summary>
+    /// Revela el tablero de selección de escena (Fácil/Difícil). Se llama desde
+    /// DialogoPreparacion cuando Labbu muestra el panel "Elección lugar", para
+    /// que aparezca junto con esa parte de la explicación (no antes).
+    /// </summary>
+    public void MostrarEscenarios()
+    {
+        if (cajaFacil != null)
+            cajaFacil.SetActive(true);
+
         if (cajaDificil != null)
         {
             bool desbloqueado = EmotionDataManager.Instance != null && EmotionDataManager.Instance.FacilCompletado;
@@ -61,6 +137,12 @@ public class MenuSelector : MonoBehaviour
     // Llamado por el botón "Iniciar"
     public void Iniciar()
     {
+        if (!TodasLasPreguntasRespondidas())
+        {
+            Debug.LogWarning("Debes responder el formulario del Clipboard antes de iniciar.");
+            return;
+        }
+
         bool faltaPresentacion = string.IsNullOrEmpty(presentacionSeleccionada);
         bool faltaEscena = string.IsNullOrEmpty(escenaSeleccionada);
 

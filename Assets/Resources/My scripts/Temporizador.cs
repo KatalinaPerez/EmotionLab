@@ -154,7 +154,13 @@ public class Temporizador : MonoBehaviour
             && !transicionLanzada
             && !string.IsNullOrEmpty(escenaSiguiente))
         {
-            transicionLanzada = true;
+            // No marcamos transicionLanzada acá: es la misma bandera que revisa
+            // IrAEscenaSiguiente() para evitar dobles transiciones, y si la
+            // dejamos en true antes de tiempo, esa llamada (vía Invoke) corta
+            // en su primera línea y nunca llega a marcar el modo completado ni
+            // a cargar la escena. TemporizadorCompletado() solo se ejecuta una
+            // vez de todos modos (Update() lo garantiza), así que no hace falta
+            // duplicar la protección acá.
             Invoke(nameof(IrAEscenaSiguiente), Mathf.Max(0f, delayAntesDeTransicion));
         }
     }

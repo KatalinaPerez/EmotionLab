@@ -13,7 +13,7 @@ public class EjercicioRespiracion : MonoBehaviour
     public float inhaleDuration = 4f;       // Duración inhalar
     public float holdDuration = 7f;         // Duración sostener
     public float exhaleDuration = 8f;       // Duración exhalar
-    public float scaleMultiplier = 1f;    // Tamaño máximo del globo al inhalar
+    public float scaleMultiplier = 0.7f;    // Tamaño máximo del globo al inhalar
     private bool isRunning = false;
     private Vector3 baseScale;
 
@@ -23,9 +23,10 @@ public class EjercicioRespiracion : MonoBehaviour
 
     [Header("UI opcional")] //Texto Inhala, Exhala
     public TextMeshProUGUI instructionText;
+    public Button inicioButton;
     //public GameObject panelText;
 
-        void Start()
+    void Start()
     {
         if (balloonObject != null)
         {
@@ -80,6 +81,7 @@ public class EjercicioRespiracion : MonoBehaviour
             EmotionDataManager.Instance.LogEvent("breathing_technique_used", "inicio");
 
         if (balloonObject != null) balloonObject.SetActive(true);
+        if (inicioButton != null) inicioButton.gameObject.SetActive(false);
         if (instructionText != null)
         {
             instructionText.gameObject.SetActive(true);
