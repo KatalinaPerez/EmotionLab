@@ -82,13 +82,11 @@ public class EmotionDataManager : MonoBehaviour
         if (nombre.IndexOf("Oficina", StringComparison.OrdinalIgnoreCase) >= 0)
         {
             ultimaEscenaJugada = "Oficina";
-            MarcarModoCompletado("facil");
             SetDifficultyLevel("facil");
         }
         else if (nombre.IndexOf("Sal", StringComparison.OrdinalIgnoreCase) >= 0) // Salón / Salon
         {
             ultimaEscenaJugada = "Salon";
-            MarcarModoCompletado("dificil");
             SetDifficultyLevel("dificil");
         }
         else if (nombre.IndexOf("Retroalimentacion", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -107,10 +105,12 @@ public class EmotionDataManager : MonoBehaviour
         if (nombre.IndexOf("Oficina", StringComparison.OrdinalIgnoreCase) >= 0)
         {
             ultimaEscenaJugada = "Oficina";
+            MarcarModoCompletado("facil");
         }
         else if (nombre.IndexOf("Sal", StringComparison.OrdinalIgnoreCase) >= 0)
         {
             ultimaEscenaJugada = "Salon";
+            MarcarModoCompletado("dificil");
         }
 
         if (guardarAlCambiarEscena) GuardarAJson();
@@ -378,6 +378,12 @@ public class EmotionDataManager : MonoBehaviour
     {
         if (sesionActual == null || string.IsNullOrEmpty(sesionActual.idParticipante)) IniciarSesion(null);
 
+        // Idempotente: Temporizador/CargadorEscena y la descarga de escena pueden
+        // marcar el mismo modo; solo se registra el evento una vez.
+        if (sesionActual.ultimoModoCompletado == modo
+            && (modo == "facil" ? sesionActual.facilCompletado : sesionActual.dificilCompletado))
+            return;
+
         sesionActual.ultimoModoCompletado = modo;
         if (modo == "facil") sesionActual.facilCompletado = true;
         else if (modo == "dificil") sesionActual.dificilCompletado = true;
@@ -386,6 +392,19 @@ public class EmotionDataManager : MonoBehaviour
             Debug.Log($"[EmotionDataManager] Modo completado: {modo}");
 
         LogEvent("modo_completado", modo);
+    }
+
+    /// <summary>
+    /// Marca como completado el modo que corresponde a la escena activa
+    /// (Oficina = "facil", Salón = "dificil"). Para botones sin modo configurado.
+    /// </summary>
+    public void MarcarModoCompletadoSegunEscena()
+    {
+        string escena = SceneManager.GetActiveScene().name;
+        if (escena.IndexOf("Oficina", StringComparison.OrdinalIgnoreCase) >= 0)
+            MarcarModoCompletado("facil");
+        else if (escena.IndexOf("Sal", StringComparison.OrdinalIgnoreCase) >= 0)
+            MarcarModoCompletado("dificil");
     }
 
     public void MarcarRetryUsado()
