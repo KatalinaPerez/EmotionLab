@@ -27,6 +27,10 @@ public class Interrupciones : MonoBehaviour
 
     private float tiempoActual;
     private bool interrupcionGenerador = false;
+    private bool interrupcionActiva = false;
+
+    /// <summary>True solo mientras el generador está roto (entre InterrumpirGenerador y TerminarInterrupcionGenerador).</summary>
+    public bool InterrupcionActiva => interrupcionActiva;
 
     // Start is called before the first frame update
     void Start()
@@ -80,6 +84,8 @@ public class Interrupciones : MonoBehaviour
 
     public void InterrumpirGenerador()
     {
+        interrupcionActiva = true;
+
         if (prefabs != null)
         {
             foreach (GameObject prefab in prefabs)
@@ -121,6 +127,8 @@ public class Interrupciones : MonoBehaviour
     // Necesitarás llamar a esta función cuando el evento TERMINE
     public void TerminarInterrupcionGenerador()
     {
+        interrupcionActiva = false;
+
         // Revertir todo
         if (prefabs != null)
         {
@@ -172,6 +180,9 @@ public class Interrupciones : MonoBehaviour
     // Esta función PÚBLICA solo muestra el texto de notificación
     public void MostrarNotificacion()
     {
+        // Sin evento activo no hay nada que reparar: no mostrar el aviso.
+        if (!interrupcionActiva) return;
+
         if (textoNotificacion != null)
         {
             textoNotificacion.SetActive(true);

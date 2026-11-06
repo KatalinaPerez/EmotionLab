@@ -29,7 +29,9 @@ public class ArreglarGenerador : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         // Añade la comprobación de si ya fue reparado
-        if (other.CompareTag("ControladorVR") && !generadorYaReparado)
+        // Solo se puede reparar mientras el evento del generador esté activo.
+        bool eventoActivo = interrupciones == null || interrupciones.InterrupcionActiva;
+        if (other.CompareTag("ControladorVR") && !generadorYaReparado && eventoActivo)
         {
             if (!enReparacion)
             {
